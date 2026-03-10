@@ -1,50 +1,67 @@
-# Welcome to your Expo app 👋
+# Tontine App - Gestion de Tontines Numériques 📱💰
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Une application mobile moderne, sécurisée et transparente pour automatiser et gérer les groupes d'épargne solidaire (tontines), développée avec **React Native**, **Expo** et **Firebase**.
 
-## Get started
+## 🌟 Fonctionnalités Clés
 
-1. Install dependencies
+- **Authentification Sécurisée** : Inscription et connexion via Firebase Auth.
+- **Gestion de Tontines** : 
+  - Création de tontines avec paramètres personnalisés (Montant, Fréquence, Nom).
+  - Adhésion simple via un code d'invitation unique.
+- **Planification Intelligente** :
+  - Génération automatique des tours selon la fréquence choisie (Quotidienne, Hebdomadaire, Mensuelle).
+  - Algorithme de brassage aléatoire pour désigner l'ordre des bénéficiaires.
+- **Suivi des Paiements** :
+  - Simulation de paiement Mobile Money (PayDunya / Flutterwave).
+  - Validation des versements par l'administrateur.
+  - Indicateur de statut des tours (En attente, Complété).
+- **Transparence & Historique** :
+  - Vue détaillée des participants et de leurs statuts de paiement.
+  - Exportation des résumés de tontine pour le partage.
 
+## 🛠 Technologies utilisées
+
+- **Frontend** : [React Native](https://reactnative.dev/) avec [Expo](https://expo.dev/) (TypeScript)
+- **Navigation** : [Expo Router](https://docs.expo.dev/router/introduction/) (Routage par fichiers)
+- **Backend** : [Firebase](https://firebase.google.com/) (Authentication & Firestore)
+- **UI/UX** : Composants réutilisables personnalisés avec un design propre et moderne.
+
+## 🚀 Installation et Lancement
+
+### Prérequis
+- Node.js installé.
+- Compte Firebase (ou utiliser l'émulateur local).
+- Application **Expo Go** sur votre téléphone (iOS/Android).
+
+### Étapes
+1. **Cloner le projet**
+   ```bash
+   git clone [url-du-repo]
+   cd tontine-app
+   ```
+
+2. **Installer les dépendances**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. **Lancer l'application**
    ```bash
-   npx expo start
+   npx expo start --tunnel
    ```
+   *Scannez le QR Code avec votre téléphone via l'application Expo Go.*
 
-In the output, you'll find options to open the app in a
+## 📂 Structure du Projet
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- `app/` : Routes et écrans de l'application (Expo Router).
+- `src/services/` : Logique métier (Firebase, Paiements, Exports).
+- `src/components/ui/` : Bibliothèque de composants graphiques réutilisables.
+- `src/context/` : Gestion globale de l'état (Authentification).
+- `src/types/` : Définitions TypeScript pour les modèles de données.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🛡 Sécurité
 
-## Get a fresh project
+Le projet est configuré avec des règles Firestore de test. Pour une mise en production, assurez-vous de configurer les règles de sécurité Firebase pour limiter l'accès aux données par utilisateur connecté.
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+Développé avec ❤️ pour faciliter l'épargne communautaire.

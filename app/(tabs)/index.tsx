@@ -1,98 +1,172 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { useAuth } from '../../src/context/AuthContext';
+import { tontineService } from '../../src/services/tontineService';
+import { Tontine } from '../../src/types';
+import Card from '../../src/components/ui/Card';
+import Button from '../../src/components/ui/Button';
+import Input from '../../src/components/ui/Input';
+import { useRouter } from 'expo-router';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { translateStatus, translateFrequency } from '../../src/utils/translations';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function DashboardScreen() {
+  const { user } = useAuth();
+  const [tontines, setTontines] = useState<Tontine[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteCode, setInviteCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const router = useRouter();
 
-export default function HomeScreen() {
+  const loadTontines = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const data = await tontineService.getUserTontines(user.uid);
+      setTontines(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTontines();
+  }, [user]);
+
+  const handleJoin = async () => {
+    if (!inviteCode || !user) return;
+    setJoining(true);
+    try {
+      await tontineService.joinTontine(inviteCode.toUpperCase(), user.uid);
+      setInviteCode('');
+      loadTontines();
+      Alert.alert('Succès', 'Tontine rejointe avec succès !');
+    } catch (e: any) {
+      Alert.alert('Erreur', e.message || 'Échec de l\'adhésion');
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const renderItem = ({ item }: { item: Tontine }) => (
+    <TouchableOpacity onPress={() => router.push(`/tontine/${item.id}`)}>
+      <Card>
+        <View style={styles.tontineHeader}>
+          <Text style={styles.tontineName}>{item.name}</Text>
+          <Text style={styles.tontineStatus}>{translateStatus(item.status)}</Text>
+        </View>
+        <Text style={styles.tontineDetail}>Montant : {item.amount} CFA</Text>
+        <Text style={styles.tontineDetail}>Fréquence : {translateFrequency(item.frequency)}</Text>
+        <Text style={styles.tontineDetail}>Participants : {item.participants.length}</Text>
+      </Card>
+    </TouchableOpacity>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mes Tontines</Text>
+        <TouchableOpacity onPress={() => router.push('/create-tontine')} style={styles.createButton}>
+          <IconSymbol name="plus" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.joinSection}>
+        <Input
+          placeholder="Code d'invitation"
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          autoCapitalize="characters" // Force les majuscules
+          style={styles.joinInput}
+        />
+        <Button
+          title="Rejoindre"
+          onPress={handleJoin}
+          loading={joining}
+          style={styles.joinButton}
+        />
+      </View>
+
+      <FlatList
+        data={tontines}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={loadTontines} />}
+        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={
+          !loading ? <Text style={styles.emptyText}>Vous n'avez pas encore rejoint de tontine.</Text> : null
+        }
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 48,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+  },
+  createButton: {
+    padding: 8,
+  },
+  joinSection: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+  },
+  joinInput: {
+    flex: 1,
+    marginRight: 8,
+    marginBottom: 0,
+  },
+  joinButton: {
+    paddingHorizontal: 16,
+  },
+  listContainer: {
+    padding: 16,
+  },
+  tontineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  tontineName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  tontineStatus: {
+    fontSize: 14,
+    color: '#34C759',
+    textTransform: 'capitalize',
+    fontWeight: '500',
+  },
+  tontineDetail: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 4,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#8E8E93',
+    marginTop: 32,
+    fontSize: 16,
   },
 });
